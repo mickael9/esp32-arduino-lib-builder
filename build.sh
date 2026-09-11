@@ -228,6 +228,12 @@ for target_json in `jq -c '.targets[]' configs/builds.json`; do
 
     echo "* Target: '$target', Variant: '$CHIP_VARIANT'"
 
+    # Configs From Arguments
+    argument_configs=""
+    for conf in $CONFIGS; do
+        argument_configs="$argument_configs;configs/defconfig.$conf"
+    done
+
     # Build Main Configs List
     main_configs="configs/defconfig.common;configs/defconfig.$CHIP_VARIANT;configs/defconfig.debug_$BUILD_DEBUG"
     for defconf in `echo "$target_json" | jq -c '.features[]' | tr -d '"'`; do
@@ -239,6 +245,7 @@ for target_json in `jq -c '.targets[]' configs/builds.json`; do
     for defconf in `echo "$target_json" | jq -c '.idf_libs[]' | tr -d '"'`; do
         idf_libs_configs="$idf_libs_configs;configs/defconfig.$defconf"
     done
+    idf_libs_configs="$idf_libs_configs;$argument_configs"
 
     echo "* Build IDF-Libs: $idf_libs_configs"
     rm -rf build sdkconfig
@@ -270,6 +277,7 @@ for target_json in `jq -c '.targets[]' configs/builds.json`; do
         for defconf in `echo "$boot_conf" | jq -c '.[]' | tr -d '"'`; do
             bootloader_configs="$bootloader_configs;configs/defconfig.$defconf";
         done
+        bootloader_configs="$bootloader_configs;$argument_configs"
 
         echo "* Build BootLoader: $bootloader_configs"
         rm -rf build sdkconfig
@@ -283,6 +291,7 @@ for target_json in `jq -c '.targets[]' configs/builds.json`; do
         for defconf in `echo "$mem_conf" | jq -c '.[]' | tr -d '"'`; do
             mem_configs="$mem_configs;configs/defconfig.$defconf";
         done
+        mem_configs="$mem_configs;$argument_configs"
 
         echo "* Build Memory Variant: $mem_configs"
         rm -rf build sdkconfig
